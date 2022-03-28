@@ -1,0 +1,91 @@
+
+import os
+import time
+from data.data_process import load_data
+from data.data_process import get_word2id
+from data.data_process import extend_vocab
+from data.data_process import add_end_token
+from data.path import get_train_data_path
+from data.path import get_eval_data_path
+from data.path import get_test_data_path
+from model.path import get_bilstm_crf_model_path
+from model.path import get_word2id_path
+from model.path import get_tag2id_path
+from model.path import get_id2word_path
+from model.path import get_pretrained_char_vec_path
+from tools.help import save_as_pickle
+from tools.help import load_pickle_obj
+from tools.get_pretrained_vec import GetPretrainedVec
+
+class ModelTrain:
+    def __init__(self) -> None:
+        self.model_save_path = get_bilstm_crf_model_path()
+        self.train_data_path = get_train_data_path()
+        self.eval_data_path = get_eval_data_path()
+        self.test_data_path = get_test_data_path()
+        self.word2id_path = get_word2id_path()
+        self.tag2id_path = get_tag2id_path()
+        self.id2word_path = get_id2word_path()
+        self.vec_path = get_pretrained_char_vec_path()
+        self.model = None
+        self.word2id = None
+        self.tag2id = None
+        self.id2word = None
+        self.get_pretrained_vec = GetPretrainedVec()
+
+    def load(self):
+        self.get_pretrained_vec.load()
+
+    def prepare_data(self):
+        self.train_word_lists, self.train_tag_lists = load_data(self.train_data_path)
+        self.eval_word_lists, self.eval_tag_list = load_data(self.eval_data_path)
+        self.test_word_lists, self.test_tag_list = load_data(self.test_data_path)
+
+        self.word2id = get_word2id(self.train_word_lists)
+        self.tag2id = get_word2id(self.train_tag_lists)
+        self.word2id, self.tag2id = extend_vocab(self.word2id, self.tag2id)
+
+        self.id2word = {self.word2id[w]: w for w in self.word2id}
+
+        save_as_pickle(self.word2id, self.word2id_path)
+        save_as_pickle(self.tag2id, self.tag2id_path)
+        save_as_pickle(self.id2word, self.id2word_path)
+        
+        if not os.path.exists(self.vec_path):
+            print('用 BERT 生成预训练向量')
+            self.get_pretrained_vec.get_bert_embed(self.train_data_path, self.vec_path, char=True)
+
+        self.train_word_lists, self.train_tag_lists = add_end_token(self.train_word_lists, self.train_tag_lists)
+
+        self.eval_word_lists, self.eval_tag_list = add_end_token(self.eval_word_lists, self.eval_tag_list)
+
+        self.test_word_lists, self.test_tag_list = add_end_token(self.test_word_lists, self.test_tag_list, test=True)
+
+        return (self.train_word_lists, self.train_tag_lists, 
+                self.eval_word_lists, self.eval_tag_list, 
+                self.test_word_lists, self.test_tag_list)
+
+
+    def train(self, crf=True):
+        self.get_pretrained_vec.load()
+        train_word_lists, train_tag_lists, dev_word_lists, dev_tag_lists, test_word_lists, test_tag_lists = self.prepare_data()
+        
+        word2id = load_pickle_obj(self.word2id_path)
+        tag2id = load_pickle_obj(self.tag2id_path)
+
+        print(tag2id)
+        start = time.time()
+        vocab_size = len(word2id)
+        out_size = len(tag2id)
+
+        print(f"vocab_size: {vocab_size}, out_size: {out_size}")
+
+        model_name = "bilstm_crf" if crf else "bilstm"
+
+
+
+        print("start to train the {} ...".format(model_name))
+
+        print("训练完毕,共用时{}秒.".format(int(time.time() - start)))
+
+
