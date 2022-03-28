@@ -1,0 +1,4 @@
+__pycache__
+data/model/bert
+data/model/bilstm_crf
+data/model/data_obj
