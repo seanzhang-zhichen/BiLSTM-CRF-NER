@@ -1,4 +1,6 @@
 __pycache__
+data/model
 data/model/bert
-data/model/bilstm_crf
+data/model/bilstm-crf
 data/model/data_obj
+.DS_Store
