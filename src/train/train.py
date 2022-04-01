@@ -8,7 +8,6 @@ from data.data_process import add_end_token
 from data.path import get_train_data_path
 from data.path import get_eval_data_path
 from data.path import get_test_data_path
-from model.path import get_bilstm_crf_model_path
 from model.path import get_word2id_path
 from model.path import get_tag2id_path
 from model.path import get_id2word_path
@@ -16,10 +15,10 @@ from model.path import get_pretrained_char_vec_path
 from tools.help import save_as_pickle
 from tools.help import load_pickle_obj
 from tools.get_pretrained_vec import GetPretrainedVec
+from .train_helper import NerModel
 
-class ModelTrain:
+class Train:
     def __init__(self) -> None:
-        self.model_save_path = get_bilstm_crf_model_path()
         self.train_data_path = get_train_data_path()
         self.eval_data_path = get_eval_data_path()
         self.test_data_path = get_test_data_path()
@@ -66,26 +65,19 @@ class ModelTrain:
                 self.test_word_lists, self.test_tag_list)
 
 
-    def train(self, crf=True):
+    def train(self, use_pretrained_w2v=False, model_type="bilstm-crf"):
         self.get_pretrained_vec.load()
         train_word_lists, train_tag_lists, dev_word_lists, dev_tag_lists, test_word_lists, test_tag_lists = self.prepare_data()
         
         word2id = load_pickle_obj(self.word2id_path)
         tag2id = load_pickle_obj(self.tag2id_path)
 
-        print(tag2id)
-        start = time.time()
+        print(f"tag2id: {tag2id}")
         vocab_size = len(word2id)
         out_size = len(tag2id)
-
+        ner_model = NerModel(vocab_size, out_size, use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type, )
         print(f"vocab_size: {vocab_size}, out_size: {out_size}")
+        print("start to train the {} model ...".format(model_type))
 
-        model_name = "bilstm_crf" if crf else "bilstm"
-
-
-
-        print("start to train the {} ...".format(model_name))
-
-        print("训练完毕,共用时{}秒.".format(int(time.time() - start)))
-
+        ner_model.train(train_word_lists, train_tag_lists, dev_word_lists, dev_tag_lists, test_word_lists, test_tag_lists, word2id, tag2id)
 

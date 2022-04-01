@@ -4,17 +4,14 @@ def get_bert_dir():
     return '../data/model/bert'
 
 
-def get_bilstm_crf_dir():
-    return '../data/model/bilstm_crf'
+def get_model_dir():
+    return '../data/model'
 
 
 def get_chinese_wwm_ext_pytorch_path():
     bert_path = os.path.join(get_bert_dir(), 'chinese_wwm_ext_pytorch')
     return bert_path
 
-
-def get_bilstm_crf_model_path():
-    model_path = os.path.join(get_bilstm_crf_dir(), 'bilstm_crf.pt')
 
 
 def get_data_obj_dir():
