@@ -115,5 +115,29 @@ class NerModel(object):
                 torch.save(self.best_model.state_dict(), model_save_path)
                 print(f"curren best val loss: {self.best_val_loss}")
 
-            
-            
+    def test(self, test_word_lists, test_tag_lists, word2id, tag2id):
+        test_word_lists,test_tag_lists,indices = sort_by_lengths(test_word_lists, test_tag_lists)
+        batch_sents_tensor, sents_lengths = batch_sents_to_tensorized(test_word_lists, word2id)
+        batch_sents_tensor = batch_sents_tensor.to(self.device)
+        self.best_model.eval()
+        with torch.no_grad():
+            batch_tagids = self.best_model.predict(batch_sents_tensor, sents_lengths, tag2id)
+        pre_tag_lists = []
+        id2tag = dict((id_, tag) for tag, id_ in tag2id.items())
+        for i, ids in enumerate(batch_tagids):
+            tag_list = []
+            if self.model_type == "bilstm-crf":
+                for j in range(sents_lengths[i] - 1):
+                    tag_list.append(id2tag[ids[j]].item())
+            else:
+                for j in range(sents_lengths[i]):
+                    tag_list.append(id2tag[ids[j]].item())  
+            pre_tag_lists.append(tag_list)           
+        ind_maps = sorted(list(enumerate(indices)), key=lambda e: e[1])
+        indices, _ = list(zip(*ind_maps))
+        pred_tag_lists = [pred_tag_lists[i] for i in indices]
+        tag_lists = [tag_lists[i] for i in indices]
+
+        total_precision, result_dic = precision(pred_tag_lists, tag_lists)
+        print(f"实体级准确率为: {total_precision}")
+        print(f"各实体对应的准确率为: {json.dumps(result_dic, ensure_ascii=False, indent=4)}")
