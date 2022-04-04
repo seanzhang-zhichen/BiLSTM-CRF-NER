@@ -18,7 +18,10 @@ def get_chinese_wwm_ext_pytorch_path():
 
 
 def get_data_obj_dir():
-    return '../data/model/data_obj'
+    data_obj_dir = '../data/model/data_obj'
+    if not os.path.exists(data_obj_dir):
+        os.makedirs(data_obj_dir)
+    return data_obj_dir
 
 
 def get_word2id_path():
