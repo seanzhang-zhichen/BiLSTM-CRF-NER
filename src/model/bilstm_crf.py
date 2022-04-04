@@ -57,7 +57,10 @@ class BiLSTM_CRF(nn.Module):
                 index = torch.ones(batch_size_t).long() * (step *tagset_size)
                 index = index.to(self.device)
                 index += offset.long()
-                tags_t = backpointer[:batch_size_t].gather(dim=1, index=index.unsqueeze(1).long())
+                try:
+                    tags_t = backpointer[:batch_size_t].gather(dim=1, index=index.unsqueeze(1).long())
+                except Exception as e:
+                    print(e)
             tags_t = tags_t.squeeze(1)
             tagids.append(tags_t.tolist())
         tagids = list(zip_longest(*reversed(tagids), fillvalue=pad))
