@@ -2,7 +2,10 @@ import os
 
 
 def get_data_dir():
-    return "../data/dataset"
+    data_dir = "../data/dataset"
+    if not os.path.exists(data_dir):
+        os.makedirs(data_dir)
+    return data_dir
 
 
 def get_train_data_path():

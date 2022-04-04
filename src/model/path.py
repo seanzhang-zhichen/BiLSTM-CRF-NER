@@ -5,7 +5,10 @@ def get_bert_dir():
 
 
 def get_model_dir():
-    return '../data/model'
+    model_dir = '../data/model'
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
+    return model_dir
 
 
 def get_chinese_wwm_ext_pytorch_path():
