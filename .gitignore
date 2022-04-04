@@ -4,3 +4,4 @@ data/model/bert
 data/model/bilstm-crf
 data/model/data_obj
 .DS_Store
+.idea
