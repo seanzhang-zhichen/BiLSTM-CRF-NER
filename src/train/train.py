@@ -12,6 +12,7 @@ from model.path import get_word2id_path
 from model.path import get_tag2id_path
 from model.path import get_id2word_path
 from model.path import get_pretrained_char_vec_path
+from tools.get_ner_level_acc import find_all_tag
 from tools.help import save_as_pickle
 from tools.help import load_pickle_obj
 from tools.get_pretrained_vec import GetPretrainedVec
@@ -26,7 +27,6 @@ class Train:
         self.tag2id_path = get_tag2id_path()
         self.id2word_path = get_id2word_path()
         self.vec_path = get_pretrained_char_vec_path()
-        self.model = None
         self.word2id = None
         self.tag2id = None
         self.id2word = None
@@ -75,20 +75,39 @@ class Train:
         print(f"tag2id: {tag2id}")
         vocab_size = len(word2id)
         out_size = len(tag2id)
-        self.ner_model = NerModel(vocab_size, out_size, use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type)
+        ner_model = NerModel(vocab_size, out_size, use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type)
         print(f"vocab_size: {vocab_size}, out_size: {out_size}")
         print("start to train the {} model ...".format(model_type))
 
-        self.ner_model.train(train_word_lists, train_tag_lists, dev_word_lists, dev_tag_lists, test_word_lists, test_tag_lists, word2id, tag2id)
+        ner_model.train(train_word_lists, train_tag_lists, dev_word_lists, dev_tag_lists, test_word_lists, test_tag_lists, word2id, tag2id)
 
 
-    def predict(self, text):
+    def predict(self, text, use_pretrained_w2v, model_type):
         word2id = load_pickle_obj(self.word2id_path)
         tag2id = load_pickle_obj(self.tag2id_path)
         vocab_size = len(word2id)
         out_size = len(tag2id)
-        use_pretrained_w2v=True
-        model_type="bilstm-crf"
-        self.ner_model = NerModel(vocab_size, out_size, use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type)
-        result = self.ner_model.predict(text)
+        ner_model = NerModel(vocab_size, out_size, use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type)
+        result = ner_model.predict(text)
         return result
+
+    def get_ner_list_dic(self, text, use_pretrained_w2v, model_type):
+
+        text_list = list(text)
+        tag_list = self.predict(text, use_pretrained_w2v, model_type)[0]
+        tag_dic = find_all_tag(tag_list)
+
+        print("tag_dic: ", tag_dic)
+
+        result_dic = {}
+        for name in tag_dic:
+            for x in tag_dic[name]:
+                if result_dic.get(name) is None:
+                    result_dic[name] = []
+                if x:
+                    ner_name =  ''.join(text_list[x[0]:x[0]+x[1]])
+                    result_dic[name].append(ner_name)
+        for name in result_dic:
+            result_dic[name] =  list(set(result_dic[name]))
+
+        return result_dic

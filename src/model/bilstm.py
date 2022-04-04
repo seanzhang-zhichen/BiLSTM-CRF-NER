@@ -12,7 +12,7 @@ class BiLSTM(nn.Module):
         super(BiLSTM, self).__init__()
         self.embedding = nn.Embedding(vocab_size, emb_size)
         if use_pretrained_w2v:
-            print("加载预训练字向量")
+            print("加载预训练字向量...")
             vec_path = get_pretrained_char_vec_path()
             word2id_path = get_word2id_path()
             id2word_path = get_id2word_path()

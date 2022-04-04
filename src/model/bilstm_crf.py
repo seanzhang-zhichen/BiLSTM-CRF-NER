@@ -57,11 +57,8 @@ class BiLSTM_CRF(nn.Module):
                 index = torch.ones(batch_size_t).long() * (step *tagset_size)
                 index = index.to(self.device)
                 index += offset.long()
-            try:
-                tags_t = backpointer[:batch_size_t].gather(dim=1, index=index.unsqueeze(1).long())
-            except RuntimeError:
-                import pdb
-                pdb.set_trace()
+            
+            tags_t = backpointer[:batch_size_t].gather(dim=1, index=index.unsqueeze(1).long())
             tags_t = tags_t.squeeze(1)
             tagids.append(tags_t.tolist())
         tagids = list(zip_longest(*reversed(tagids), fillvalue=pad))

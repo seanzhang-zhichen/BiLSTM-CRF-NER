@@ -83,7 +83,6 @@ class GetPretrainedVec:
         
         word2id = load_pickle_obj(word2id_path)
         id2word = load_pickle_obj(id2word_path)
-        print(id2word[0])
         vocab_size = len(word2id)
         embedding_size = embedding_size
         weight = torch.zeros(vocab_size, embedding_size)

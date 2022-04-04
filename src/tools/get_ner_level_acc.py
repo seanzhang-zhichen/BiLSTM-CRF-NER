@@ -5,7 +5,6 @@ def _find_tag(labels, B_label="B-COM",I_label="M-COM", E_label="E-COM", S_label=
     result = []
     lenth = 0
     for num in range(len(labels)):
-        print(labels[num])
         if labels[num] == B_label:
             song_pos0 = num
         if labels[num] == B_label and labels[num+1] == E_label:
@@ -58,8 +57,6 @@ def precision(pre_labels,true_labels):
 
     pre_result = find_all_tag(pre_labels)
     true_result = find_all_tag(true_labels)
-
-    print(pre_result)
 
     result_dic = {}
     for name in pre_result:
