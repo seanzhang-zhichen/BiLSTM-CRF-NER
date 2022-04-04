@@ -32,7 +32,7 @@ class BiLSTM(nn.Module):
         scores = self.fc(output)
         return scores
     
-    def predict(self, x, lengths):
+    def predict(self, x, lengths, _):
         scores = self.forward(x, lengths)
         _, batch_tagids = torch.max(scores, dim=2)
         return batch_tagids

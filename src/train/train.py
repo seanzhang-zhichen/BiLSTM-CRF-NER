@@ -75,10 +75,20 @@ class Train:
         print(f"tag2id: {tag2id}")
         vocab_size = len(word2id)
         out_size = len(tag2id)
-        ner_model = NerModel(vocab_size, out_size, use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type, )
+        self.ner_model = NerModel(vocab_size, out_size, use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type)
         print(f"vocab_size: {vocab_size}, out_size: {out_size}")
         print("start to train the {} model ...".format(model_type))
 
-        ner_model.train(train_word_lists, train_tag_lists, dev_word_lists, dev_tag_lists, test_word_lists, test_tag_lists, word2id, tag2id)
-        ner_model.test(test_word_lists, test_tag_lists, word2id, tag2id)
+        self.ner_model.train(train_word_lists, train_tag_lists, dev_word_lists, dev_tag_lists, test_word_lists, test_tag_lists, word2id, tag2id)
 
+
+    def predict(self, text):
+        word2id = load_pickle_obj(self.word2id_path)
+        tag2id = load_pickle_obj(self.tag2id_path)
+        vocab_size = len(word2id)
+        out_size = len(tag2id)
+        use_pretrained_w2v=True
+        model_type="bilstm-crf"
+        self.ner_model = NerModel(vocab_size, out_size, use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type)
+        result = self.ner_model.predict(text)
+        return result

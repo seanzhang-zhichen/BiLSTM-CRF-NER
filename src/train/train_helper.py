@@ -9,8 +9,8 @@ from tqdm import tqdm, trange
 from model.bilstm import BiLSTM, cal_bilstm_loss
 from model.bilstm_crf import BiLSTM_CRF, cal_bilstm_crf_loss
 from tools.get_ner_level_acc import precision
-from tools.help import sort_by_lengths, batch_sents_to_tensorized
-from model.path import get_model_dir
+from tools.help import load_pickle_obj, sort_by_lengths, batch_sents_to_tensorized
+from model.path import get_model_dir, get_tag2id_path, get_word2id_path
 
 class NerModel(object):
     def __init__(self, vocab_size, out_size, use_pretrained_w2v=False, model_type="bilstm-crf"):
@@ -41,6 +41,11 @@ class NerModel(object):
         self.optimizer = torch.optim.Adam(self.model.parameters(), self.lr, weight_decay=0.005)
         self.step = 0
         self.best_val_loss = 1e18
+        if self.use_pretrained_w2v:
+            model_name = f"{self.model_type}-pretrained.pt"
+        else:
+            model_name = f"{self.model_type}.pt"
+        self.model_save_path = os.path.join(self.model_type_dir, model_name)
     
     def train(self, train_word_lists, train_tag_lists, dev_word_lists, dev_tag_lists, test_word_lists, test_tag_lists, word2id, tag2id):
         train_word_lists, train_tag_lists, _ = sort_by_lengths(train_word_lists, train_tag_lists)
@@ -64,6 +69,8 @@ class NerModel(object):
                     ))
                     loss_sum = 0.
             self.validate(epoch, dev_word_lists, dev_tag_lists, word2id, tag2id)
+            if epoch > 5:
+                self.test(test_word_lists, test_tag_lists, word2id, tag2id)
             
 
     def train_step(self, batch_sents, batch_tags, word2id, tag2id):
@@ -107,17 +114,12 @@ class NerModel(object):
             if val_loss < self.best_val_loss:
                 self.best_val_loss = val_loss
                 self.best_model = deepcopy(self.model)
-                if self.use_pretrained_w2v:
-                    model_name = f"{self.model_type}-pretrained.pt"
-                else:
-                    model_name = f"{self.model_type}.pt"
-                model_save_path = os.path.join(self.model_type_dir, model_name)
-                print(f"保存模型，path: {model_save_path}")
-                torch.save(self.best_model.state_dict(), model_save_path)
+                print(f"保存模型，path: {self.model_save_path}")
+                torch.save(self.best_model.state_dict(), self.model_save_path)
                 print(f"curren best val loss: {self.best_val_loss}")
 
     def test(self, test_word_lists, test_tag_lists, word2id, tag2id):
-        test_word_lists,test_tag_lists,indices = sort_by_lengths(test_word_lists, test_tag_lists)
+        test_word_lists, test_tag_lists, indices = sort_by_lengths(test_word_lists, test_tag_lists)
         batch_sents_tensor, sents_lengths = batch_sents_to_tensorized(test_word_lists, word2id)
         batch_sents_tensor = batch_sents_tensor.to(self.device)
         self.best_model.eval()
@@ -129,16 +131,46 @@ class NerModel(object):
             tag_list = []
             if self.model_type == "bilstm-crf":
                 for j in range(sents_lengths[i] - 1):
-                    tag_list.append(id2tag[ids[j]].item())
+                    tag_list.append(id2tag[ids[j].item()])
             else:
                 for j in range(sents_lengths[i]):
-                    tag_list.append(id2tag[ids[j]].item())  
+                    tag_list.append(id2tag[ids[j].item()])  
             pre_tag_lists.append(tag_list)           
         ind_maps = sorted(list(enumerate(indices)), key=lambda e: e[1])
         indices, _ = list(zip(*ind_maps))
-        pred_tag_lists = [pred_tag_lists[i] for i in indices]
-        tag_lists = [tag_lists[i] for i in indices]
+        pre_tag_lists = [pre_tag_lists[i] for i in indices]
+        tag_lists = [test_tag_lists[i] for i in indices]
 
-        total_precision, result_dic = precision(pred_tag_lists, tag_lists)
+        total_precision, result_dic = precision(pre_tag_lists, tag_lists)
         print(f"实体级准确率为: {total_precision}")
         print(f"各实体对应的准确率为: {json.dumps(result_dic, ensure_ascii=False, indent=4)}")
+
+    
+    def predict(self, text):
+        text_list = [list(text)]
+        word2id_path = get_word2id_path()
+        tag2id_path = get_tag2id_path()
+        word2id = load_pickle_obj(word2id_path)
+        tag2id = load_pickle_obj(tag2id_path)
+
+        tensorized_sents, lengths = batch_sents_to_tensorized(text_list, word2id)
+        tensorized_sents = tensorized_sents.to(self.device)
+        model_path = self.model_save_path
+        model = BiLSTM_CRF(self.vocab_size, self.emb_size, self.hidden_size, self.out_size, self.dropout, self.use_pretrained_w2v)
+        
+        model.load_state_dict(torch.load(model_path))
+        model.eval()
+        with torch.no_grad():
+            batch_tagids = model.predict(tensorized_sents, lengths, tag2id)
+        pre_tag_lists = []
+        id2tag = dict((id_, tag) for tag, id_ in tag2id.items())
+        for i, ids in enumerate(batch_tagids):
+            tag_list = []
+            if self.model_type == "bilstm-crf":
+                for j in range(lengths[i] - 1):
+                    tag_list.append(id2tag[ids[j].item()])
+            else:
+                for j in range(lengths[i]):
+                    tag_list.append(id2tag[ids[j].item()])  
+            pre_tag_lists.append(tag_list)           
+        return pre_tag_lists
