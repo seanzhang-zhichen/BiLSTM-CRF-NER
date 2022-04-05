@@ -6,11 +6,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 from copy import deepcopy
 from tqdm import tqdm, trange
+from torch.optim.lr_scheduler import ExponentialLR
 from model.bilstm import BiLSTM, cal_bilstm_loss
 from model.bilstm_crf import BiLSTM_CRF, cal_bilstm_crf_loss
 from tools.get_ner_level_acc import precision
 from tools.help import load_pickle_obj, sort_by_lengths, batch_sents_to_tensorized
 from model.path import get_model_dir, get_tag2id_path, get_word2id_path
+
+torch.manual_seed(1234)
 
 class NerModel(object):
     def __init__(self, vocab_size, out_size, use_pretrained_w2v=False, model_type="bilstm-crf"):
@@ -39,6 +42,8 @@ class NerModel(object):
             self.loss_cal_fun = cal_bilstm_loss
     
         self.optimizer = torch.optim.Adam(self.model.parameters(), self.lr, weight_decay=0.005)
+        self.scheduler = ExponentialLR(self.optimizer, gamma = 0.8)
+
         self.step = 0
         self.best_val_loss = 1e18
         if self.use_pretrained_w2v:
@@ -69,8 +74,10 @@ class NerModel(object):
                     ))
                     loss_sum = 0.
             self.validate(epoch, dev_word_lists, dev_tag_lists, word2id, tag2id)
+            self.scheduler.step()
             if epoch > 5:
                 self.test(test_word_lists, test_tag_lists, word2id, tag2id)
+            
             
 
     def train_step(self, batch_sents, batch_tags, word2id, tag2id):
