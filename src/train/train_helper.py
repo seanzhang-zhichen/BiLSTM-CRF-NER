@@ -7,6 +7,7 @@ import torch.nn.functional as F
 from copy import deepcopy
 from tqdm import tqdm, trange
 from torch.optim.lr_scheduler import ExponentialLR
+from model.bert_bilstm_crf import BertBiLstmCrf, cal_bert_bilstm_crf_loss
 from model.bilstm import BiLSTM, cal_bilstm_loss
 from model.bilstm_crf import BiLSTM_CRF, cal_bilstm_crf_loss
 from tools.get_ner_level_acc import precision
@@ -40,6 +41,9 @@ class NerModel(object):
         elif self.model_type == "bilstm":
             self.model = BiLSTM(self.vocab_size, self.emb_size, self.hidden_size, self.out_size, self.dropout, self.use_pretrained_w2v)
             self.loss_cal_fun = cal_bilstm_loss
+        elif self.model_type == "bert-bilstm-crf":
+            self.model = BertBiLstmCrf(self.vocab_size, self.emb_size, self.hidden_size, self.out_size, self.dropout, self.use_pretrained_w2v)
+            self.loss_cal_fun = cal_bert_bilstm_crf_loss       
     
         self.optimizer = torch.optim.Adam(self.model.parameters(), self.lr, weight_decay=0.005)
         self.scheduler = ExponentialLR(self.optimizer, gamma = 0.8)
