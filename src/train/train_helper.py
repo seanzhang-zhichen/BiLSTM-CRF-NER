@@ -156,12 +156,10 @@ class NerModel(object):
         tensorized_sents, lengths = batch_sents_to_tensorized(text_list, word2id)
         tensorized_sents = tensorized_sents.to(self.device)
         model_path = self.model_save_path
-        model = BiLSTM_CRF(self.vocab_size, self.emb_size, self.hidden_size, self.out_size, self.dropout, self.use_pretrained_w2v)
-        
-        model.load_state_dict(torch.load(model_path))
-        model.eval()
+        self.model.load_state_dict(torch.load(model_path))
+        self.model.eval()
         with torch.no_grad():
-            batch_tagids = model.predict(tensorized_sents, lengths, tag2id)
+            batch_tagids = self.model.predict(tensorized_sents, lengths, tag2id)
         pre_tag_lists = []
         id2tag = dict((id_, tag) for tag, id_ in tag2id.items())
         for i, ids in enumerate(batch_tagids):
