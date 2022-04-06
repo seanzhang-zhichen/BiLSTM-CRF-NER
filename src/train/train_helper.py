@@ -27,7 +27,7 @@ class NerModel(object):
         self.out_size = out_size
         self.batch_size = 64
         self.lr = 0.01
-        self.epoches = 10
+        self.epoches = 100
         self.print_step = 20
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"使用 : {self.device} ...")
