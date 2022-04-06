@@ -43,7 +43,9 @@ class NerModel(object):
             self.loss_cal_fun = cal_bilstm_loss
         elif self.model_type == "bert-bilstm-crf":
             self.model = BertBiLstmCrf(self.vocab_size, self.emb_size, self.hidden_size, self.out_size, self.dropout, self.use_pretrained_w2v)
-            self.loss_cal_fun = cal_bert_bilstm_crf_loss       
+            self.loss_cal_fun = cal_bert_bilstm_crf_loss
+
+        self.model.to(self.device)   
     
         self.optimizer = torch.optim.Adam(self.model.parameters(), self.lr, weight_decay=0.005)
         self.scheduler = ExponentialLR(self.optimizer, gamma = 0.8)
