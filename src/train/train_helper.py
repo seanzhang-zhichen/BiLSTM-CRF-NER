@@ -27,7 +27,7 @@ class NerModel(object):
         self.out_size = out_size
         self.batch_size = 64
         self.lr = 0.01
-        self.epoches = 100
+        self.epoches = 20
         self.print_step = 20
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         print(f"使用 : {self.device} ...")
@@ -81,7 +81,7 @@ class NerModel(object):
                     loss_sum = 0.
             self.validate(epoch, dev_word_lists, dev_tag_lists, word2id, tag2id)
             self.scheduler.step()
-            if epoch > 50:
+            if epoch > 10:
                 self.test(test_word_lists, test_tag_lists, word2id, tag2id)
             
             
