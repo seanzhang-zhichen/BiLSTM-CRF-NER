@@ -19,7 +19,7 @@ class BertBiLstmCrf(nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def forward(self, x, lengths):
-        emb = self.bert(x)[0]
+        emb = self.bert(x)[0].to(self.device)
         emb = self.dropout(emb)
         emb = nn.utils.rnn.pack_padded_sequence(emb, lengths, batch_first=True)
         emb, _ = self.bilstm(emb)

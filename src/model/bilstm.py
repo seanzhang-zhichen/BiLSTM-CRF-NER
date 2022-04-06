@@ -22,9 +22,10 @@ class BiLSTM(nn.Module):
         self.bilstm = nn.LSTM(emb_size, hidden_size, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(hidden_size*2, out_size)
         self.dropout = nn.Dropout(drop_out)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     def forward(self, x, lengths):
-        emb = self.embedding(x)
+        emb = self.embedding(x).to(self.device)
         emb = self.dropout(emb)
         emb = nn.utils.rnn.pack_padded_sequence(emb, lengths, batch_first=True)
         emb, _ = self.bilstm(emb)
