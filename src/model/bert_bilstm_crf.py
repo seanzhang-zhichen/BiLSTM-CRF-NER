@@ -12,6 +12,8 @@ class BertBiLstmCrf(nn.Module):
         self.bert_config = BeitConfig.from_pretrained(self.bert_path)
         self.bert = BertModel.from_pretrained(self.bert_path)
         emb_size = 768
+        for param in self.bert.parameters():
+            param.requires_grad = True
         self.bilstm = nn.LSTM(emb_size, hidden_size, batch_first=True, bidirectional=True)
         self.fc = nn.Linear(hidden_size*2, out_size)
         self.dropout = nn.Dropout(drop_out)
@@ -19,7 +21,7 @@ class BertBiLstmCrf(nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def forward(self, x, lengths):
-        emb = self.bert(x)[0].to(self.device)
+        emb = self.bert(x)[0]
         emb = self.dropout(emb)
         emb = nn.utils.rnn.pack_padded_sequence(emb, lengths, batch_first=True)
         emb, _ = self.bilstm(emb)
