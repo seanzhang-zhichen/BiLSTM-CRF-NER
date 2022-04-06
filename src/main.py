@@ -4,7 +4,7 @@ from tools.get_ner_level_acc import precision
 
 if __name__ == "__main__":
 
-        use_pretrained_w2v = True
+        use_pretrained_w2v = False
         model_type = "bilstm"
         
         model_train = Train()
