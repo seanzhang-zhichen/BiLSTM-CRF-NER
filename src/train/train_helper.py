@@ -48,7 +48,7 @@ class NerModel(object):
         self.model.to(self.device)   
     
         self.optimizer = torch.optim.Adam(self.model.parameters(), self.lr, weight_decay=0.005)
-        self.scheduler = ExponentialLR(self.optimizer, gamma = 0.8)
+        # self.scheduler = ExponentialLR(self.optimizer, gamma = 0.8)
 
         self.step = 0
         self.best_val_loss = 1e18
@@ -80,7 +80,7 @@ class NerModel(object):
                     ))
                     loss_sum = 0.
             self.validate(epoch, dev_word_lists, dev_tag_lists, word2id, tag2id)
-            self.scheduler.step()
+            # self.scheduler.step()
             if epoch > 50:
                 self.test(test_word_lists, test_tag_lists, word2id, tag2id)
             
