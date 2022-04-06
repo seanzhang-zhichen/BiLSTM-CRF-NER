@@ -22,10 +22,10 @@ class BertBiLstmCrf(nn.Module):
 
     def forward(self, x, lengths):
         emb = self.bert(x)[0]
-        emb = self.dropout(emb)
         emb = nn.utils.rnn.pack_padded_sequence(emb, lengths, batch_first=True)
         emb, _ = self.bilstm(emb)
         output, _ = nn.utils.rnn.pad_packed_sequence(emb, batch_first=True, padding_value=0., total_length=x.shape[1])
+        output = self.dropout(output)
         emission = self.fc(output)
         batch_size, max_len, out_size = emission.size()
         crf_scores = emission.unsqueeze(2).expand(-1, -1, out_size, -1) + self.transition.unsqueeze(0)
