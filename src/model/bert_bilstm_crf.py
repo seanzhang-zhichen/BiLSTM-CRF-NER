@@ -24,7 +24,6 @@ class BertBiLstmCrf(nn.Module):
         emb = self.bert(x)[0]
         emb = nn.utils.rnn.pack_padded_sequence(emb, lengths, batch_first=True)
         emb, _ = self.bilstm(emb)
-        emb = self.dropout(emb)
         output, _ = nn.utils.rnn.pad_packed_sequence(emb, batch_first=True, padding_value=0., total_length=x.shape[1])
         emission = self.fc(output)
         batch_size, max_len, out_size = emission.size()
