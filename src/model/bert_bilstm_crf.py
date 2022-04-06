@@ -6,7 +6,7 @@ from transformers import BeitConfig, BertModel
 from .path import get_chinese_wwm_ext_pytorch_path
 
 class BertBiLstmCrf(nn.Module):
-    def __init__(self, vocab_size, emb_size, hidden_size, out_size, drop_out=0.5, use_pretrained_w2v=False):
+    def __init__(self, vocab_size, emb_size, hidden_size, out_size, drop_out=0.1, use_pretrained_w2v=False):
         super(BertBiLstmCrf, self).__init__()
         self.bert_path = get_chinese_wwm_ext_pytorch_path()
         self.bert_config = BeitConfig.from_pretrained(self.bert_path)
@@ -21,10 +21,12 @@ class BertBiLstmCrf(nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def forward(self, x, lengths):
-        emb = self.bert(x)[0]
+        with torch.no_grad(): 
+          emb, _  = self.bert(x)
         emb = nn.utils.rnn.pack_padded_sequence(emb, lengths, batch_first=True)
         emb, _ = self.bilstm(emb)
         output, _ = nn.utils.rnn.pad_packed_sequence(emb, batch_first=True, padding_value=0., total_length=x.shape[1])
+        output = self.dropout(output)
         emission = self.fc(output)
         batch_size, max_len, out_size = emission.size()
         crf_scores = emission.unsqueeze(2).expand(-1, -1, out_size, -1) + self.transition.unsqueeze(0)
