@@ -22,7 +22,8 @@ class BertBiLstmCrf(nn.Module):
 
     def forward(self, x, lengths):
         with torch.no_grad(): 
-          emb, _  = self.bert(x)
+            emb, _  = self.bert(x)
+        print(emb)
         emb = nn.utils.rnn.pack_padded_sequence(emb, lengths, batch_first=True)
         emb, _ = self.bilstm(emb)
         output, _ = nn.utils.rnn.pad_packed_sequence(emb, batch_first=True, padding_value=0., total_length=x.shape[1])
