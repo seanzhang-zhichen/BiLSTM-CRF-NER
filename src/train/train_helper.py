@@ -177,7 +177,7 @@ class NerModel(object):
         id2tag = dict((id_, tag) for tag, id_ in tag2id.items())
         for i, ids in enumerate(batch_tagids):
             tag_list = []
-            if self.model_type == "bilstm-crf":
+            if self.model_type.find("bilstm-crf") != -1:
                 for j in range(lengths[i] - 1):
                     tag_list.append(id2tag[ids[j].item()])
             else:
