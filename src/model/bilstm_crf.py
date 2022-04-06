@@ -11,7 +11,7 @@ class BiLSTM_CRF(nn.Module):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def forward(self, sents_tensor, lengths):
-        emission = self.bilstm(sents_tensor, lengths)
+        emission = self.bilstm(sents_tensor, lengths).to(self.device)
         batch_size, max_len, out_size = emission.size()
         crf_scores = emission.unsqueeze(2).expand(-1, -1, out_size, -1) + self.transition.unsqueeze(0)
         return crf_scores
