@@ -91,7 +91,7 @@ class NerModel(object):
         labels_tensor, _ = batch_sents_to_tensorized(batch_tags, tag2id)
 
         batch_sents_tensor, labels_tensor = batch_sents_tensor.to(self.device), labels_tensor.to(self.device)
-        scores = self.model(batch_sents_tensor, sents_lengths)
+        scores = self.model(batch_sents_tensor, sents_lengths).to(self.device)
 
         self.model.zero_grad()
         loss = self.loss_cal_fun(scores, labels_tensor, tag2id)
