@@ -26,7 +26,7 @@ class NerModel(object):
         self.vocab_size = vocab_size
         self.out_size = out_size
         self.batch_size = 64
-        self.lr = 0.1
+        self.lr = 0.01
         self.epoches = 100
         self.print_step = 20
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
