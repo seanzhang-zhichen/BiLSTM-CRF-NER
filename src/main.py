@@ -3,7 +3,7 @@ from tools.get_ner_level_acc import precision
 
 if __name__ == "__main__":
 
-        use_pretrained_w2v = False
+        use_pretrained_w2v = True
         model_type = "bilstm-crf"
         
         model_train = Train()
