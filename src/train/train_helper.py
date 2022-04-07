@@ -81,9 +81,10 @@ class NerModel(object):
                     loss_sum = 0.
             self.validate(epoch, dev_word_lists, dev_tag_lists, word2id, tag2id)
             self.scheduler.step()
-            if epoch > 10:
+            if epoch > 10 and self.model_type != "bert-bilstm-crf":
                 self.test(test_word_lists, test_tag_lists, word2id, tag2id)
-            
+            elif epoch > 15:
+                self.test(test_word_lists, test_tag_lists, word2id, tag2id)
             
 
     def train_step(self, batch_sents, batch_tags, word2id, tag2id):
