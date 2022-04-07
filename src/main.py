@@ -8,7 +8,7 @@ if __name__ == "__main__":
         model_type = "bilstm-crf"
         
         model_train = Train()
-        model_train.train(use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type)
+        # model_train.train(use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type)
         
         text = "张铁柱，大学本科，毕业于东华理工大学，汉族，江西抚州人"
 
