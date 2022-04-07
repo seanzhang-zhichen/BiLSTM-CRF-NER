@@ -5,12 +5,12 @@ from tools.get_ner_level_acc import precision
 if __name__ == "__main__":
 
         use_pretrained_w2v = False
-        model_type = "bilstm"
+        model_type = "bilstm-crf"
         
         model_train = Train()
         model_train.train(use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type)
         
-        text = "张铁柱，大学本科，毕业于东华理工大学，汉族，出生于江西省抚州市"
+        text = "张铁柱，大学本科，毕业于东华理工大学，汉族。"
 
         result = model_train.predict(text, use_pretrained_w2v, model_type)
         print(result[0])
