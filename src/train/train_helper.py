@@ -161,7 +161,8 @@ class NerModel(object):
     
     def predict(self, text):
         text_list = list(text)
-        text_list.append("<end>")
+        if self.model_type.find("bilstm-crf") != -1:
+            text_list.append("<end>")
         text_list = [text_list]
         word2id_path = get_word2id_path()
         tag2id_path = get_tag2id_path()
