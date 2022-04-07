@@ -13,8 +13,6 @@ if __name__ == "__main__":
 
         result = model_train.predict(text, use_pretrained_w2v, model_type)
         print(result[0])
-        print(len(text))
-        print(len(result[0]))
 
         result_dic = model_train.get_ner_list_dic(text, use_pretrained_w2v, model_type)
         print(result_dic)
