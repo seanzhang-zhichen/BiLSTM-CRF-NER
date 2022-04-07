@@ -1,11 +1,10 @@
-
 from train.train import Train
 from tools.get_ner_level_acc import precision
 
 if __name__ == "__main__":
 
-        use_pretrained_w2v = True
-        model_type = "bilstm"
+        use_pretrained_w2v = False
+        model_type = "bilstm-crf"
         
         model_train = Train()
         model_train.train(use_pretrained_w2v=use_pretrained_w2v,  model_type=model_type)
